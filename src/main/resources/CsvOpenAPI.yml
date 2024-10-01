@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: Employee CSV file processing API.
+  description: This API endpoints for uploading, validating and storing employee data from CSV files.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8081
+    description: Local Dev Server.
+
+paths:
+
+  /csv/files/upload:
+    post:
+      summary: Upload employee CSV file.
+      description: Upload a CSV file which contains employee data and start background processing.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '202':
+          description: CSV File is accepted for the processing.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  message:
+                    type: string
+                    example: "File Successfully uploaded and processing started."
+        '400':
+          description: Invalid file format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid file format. Please upload a CSV file."
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid server error"
+
+  /csv/files/status/{id}:
+    get:
+      summary: Get the status of file processing.
+      description: Fetch the current processing status of a CSV file using the tracking ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: unique tracking id return during the file upload.
+      responses:
+        '200':
+          description: Processing status.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  status:
+                    type: string
+                    enum: [PENDING,PROCESSING,COMPLETED,FAILED]
+                    example: "COMPLETED"
+                  fileId:
+                    type: integer
+                    example: 1
+                  message:
+                    type: string
+                    example: "File processed successfully"
+        '404':
+          description: Tracking ID not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Tracking ID not found."
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid server error"
+
+  /csv/files/report/{id}:
+    get:
+      summary: Get the processing report by file id.
+      description: Fetch the detailed report of CSV processing including accepted and rejected rows and reasons for rejection.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the processed file.
+      responses:
+        '200':
+          description: Processing report.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
+                    type: integer
+                    example: 1
+                  fileName:
+                    type: string
+                    example: "employee.csv"
+                  acceptedDate:
+                    type: string
+                    example: "2024-09-30T11:22:57.133+00:00"
+                  processedDate:
+                    type: string
+                    example: "2024-09-30T11:22:57.160+00:00"
+                  numberOfRowsProcessed:
+                    type: integer
+                    example: 100
+                  numberOfRowsAccepted:
+                    type: integer
+                    example: 20
+                  numberOfRowsRejectedBadEmail:
+                    type: integer
+                    example: 0
+                  numberOfRowsRejectedBadPhone:
+                    type: integer
+                    example: 0
+                  numberOfRowsRejectedBadAadhar:
+                    type: integer
+                    example: 0
+                  numberOfRowsRejectedEmptyMandatoryFields:
+                    type: integer
+                    example: 0
+        '404':
+          description: File ID not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "File ID not found."
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid server error"
+
+  /api/employees/search:
+    get:
+      summary: Search employees by name.
+      description: Perform a full-text search for employees by their first or last name.
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The search term for employee's first or last name.
+      responses:
+        '200':
+          description: Employee search results.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  employeeId:
+                    type: string
+                    example: "1"
+                  firstName:
+                    type: string
+                    example: "Jagadish"
+                  lastName:
+                    type: string
+                    example: "Patil"
+                  email:
+                    type: string
+                    example: "jagadishpatil@gmail.com"
+                  aadharNumber:
+                    type: string
+                    example: "123456789012"
+                  designation:
+                    type: string
+                    example: "Lead Software Engineer"
+                  phoneNumber:
+                    type: string
+                    example: "9096732204"
+        '400':
+          description: Bad Request missing or invalid search query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Search query can not be empty"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid server error"
+
