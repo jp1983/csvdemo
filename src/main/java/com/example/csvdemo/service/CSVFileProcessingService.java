@@ -14,7 +14,6 @@ import com.example.csvdemo.validator.AadharValidator;
 import com.example.csvdemo.validator.EmailValidator;
 import com.example.csvdemo.validator.MandatoryFieldValidator;
 import com.example.csvdemo.validator.PhoneValidator;
-import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,18 +44,6 @@ public class CSVFileProcessingService {
 
     @Autowired
     private CSVFileStatusRepository csvFileStatusRepository;
-
-    @Autowired
-    private EmailValidator emailValidator;
-
-    @Autowired
-    private PhoneValidator phoneValidator;
-
-    @Autowired
-    private AadharValidator aadharValidator;
-
-    @Autowired
-    private MandatoryFieldValidator mandatoryFieldValidator;
 
     final static Logger logger = Logger.getLogger(String.valueOf(CSVFileProcessingService.class));
 
@@ -176,17 +163,14 @@ public class CSVFileProcessingService {
         String aadhar  = row[5];
         String phone  = row[6];
 
-        System.out.println("phone => "+phone);
-        System.out.println("aadhar => "+aadhar);
-
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
         List<Future<Boolean>> validationFutures = new ArrayList<>();
 
-        Future<Boolean> emailValidation = executor.submit(() -> emailValidator.validate(email));
-        Future<Boolean> phoneValidation = executor.submit(() -> phoneValidator.validate(phone));
-        Future<Boolean> aadharValidation = executor.submit(() -> aadharValidator.validate(aadhar));
-        Future<Boolean> mandatoryFieldsValidation = executor.submit(() -> mandatoryFieldValidator.validate(employeeId, email, firstName, lastName, aadhar));
+        Future<Boolean> emailValidation = executor.submit(() -> EmailValidator.validate(email));
+        Future<Boolean> phoneValidation = executor.submit(() -> PhoneValidator.validate(phone));
+        Future<Boolean> aadharValidation = executor.submit(() -> AadharValidator.validate(aadhar));
+        Future<Boolean> mandatoryFieldsValidation = executor.submit(() -> MandatoryFieldValidator.validate(employeeId, email, firstName, lastName, aadhar));
 
         validationFutures.add(emailValidation);
         validationFutures.add(phoneValidation);
